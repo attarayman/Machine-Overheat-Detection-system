@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\Main.c.obj" 
+TO ".\Objects\Machine over heat detection" 
+PRINT(".\Listings\Machine over heat detection.m51") RAMSIZE(256) 

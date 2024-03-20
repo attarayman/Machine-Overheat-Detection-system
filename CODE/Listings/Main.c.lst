@@ -1,0 +1,240 @@
+C51 COMPILER V9.60.0.0   MAIN_C                                                            06/06/2021 13:14:55 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN_C
+OBJECT MODULE PLACED IN .\Objects\Main.c.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Main.c.c BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\Main.c.lst) TABS(2) 
+                    -OBJECT(.\Objects\Main.c.obj)
+
+line level    source
+
+   1          #include "reg51.h"
+   2          
+   3          #define SegOne   0xfe     // define digit 4
+   4          #define SegTwo   0xfd     // digit 3
+   5          #define SegThree 0xfb     // digit 2
+   6          #define SegFour  0xf7     // digit 1
+   7          
+   8          
+   9          sbit rd_adc=P1^0;         // Read(RD) pin of ADC0804
+  10          sbit wr_adc=P1^1;         // Write(WR) pin of ADC0804
+  11          sbit intr_adc=P1^2;       // Interrupt(INTR) pin of ADC0804
+  12          
+  13          
+  14          sbit set=P1^3;            // Set Button pin declaration
+  15          sbit inc=P1^4;            // Increament Button pin declaration
+  16          sbit dec=P1^5;            // Decreament Button pin declaration
+  17          sbit reset=P1^6;          // Reset Button pin declaration
+  18          
+  19          
+  20          sbit buzzer=P1^7;         // Buzzer  pin declaration
+  21          
+  22          
+  23          
+  24          // delay for seven segment display
+  25          void DELAY_ms(unsigned int ms_Count) 
+  26          {
+  27   1        unsigned int i, j;
+  28   1      
+  29   1          for (i = 0; i < ms_Count; i++) 
+  30   1          {
+  31   2            
+  32   2            for (j = 0; j < 100; j++);
+  33   2            
+  34   2          }
+  35   1      }
+  36          
+  37          
+  38          
+  39          // delay for adc
+  40          void delay(unsigned int z)
+  41          {
+  42   1        
+  43   1        unsigned int p,q;
+  44   1        
+  45   1        for(p=0;p<z;p++)    //repeat for 'z' times
+  46   1        {
+  47   2          
+  48   2          for(q=0;q<1375;q++);   //repeat for 1375 times
+  49   2          
+  50   2        }
+  51   1        
+  52   1      }
+  53          
+  54          
+C51 COMPILER V9.60.0.0   MAIN_C                                                            06/06/2021 13:14:55 PAGE 2   
+
+  55          
+  56          
+  57          // main function
+  58          
+  59          int main()
+  60          {
+  61   1          
+  62   1        // declaring 7 segment value and variable
+  63   1        char hexvalue[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e, 0
+             -x79, 0x71};
+  64   1        int num, temp,i,st=0;               
+  65   1        unsigned int value, cnt=35, set_value=35;   
+  66   1        //declare end 
+  67   1          
+  68   1        P0=0xFF;    //make Port 0 as input port for ADC_data 
+  69   1          
+  70   1        while (1)   // continue loop
+  71   1        {
+  72   2          //send LOW to HIGH pulse on WR pin
+  73   2          wr_adc=0;   
+  74   2          delay(1);
+  75   2          wr_adc=1;   
+  76   2          //
+  77   2            
+  78   2          while(intr_adc==1);               //wait for End of Conversion
+  79   2          rd_adc=0;                        //make RD = 0 to read the data from ADC0804
+  80   2          value=P0;                       //copy ADC _data
+  81   2          value = value*0.488;           //ADC ref
+  82   2          
+  83   2          
+  84   2          for (i = 0; i < 100; i++)
+  85   2          {
+  86   3                      
+  87   3            num = value;                // value is copied to num 
+  88   3            temp = num / 1000;         // for getting thousand'th digit 
+  89   3            num = num % 1000;           
+  90   3            P3 = SegOne;                // send _data to control pins
+  91   3            P2 = hexvalue[temp];        //send _data to d0 to d7       
+  92   3            DELAY_ms(1);             
+  93   3               
+  94   3            temp = num / 100;             // for getting hundred'th digit 
+  95   3            num = num % 100;
+  96   3            P3 = SegTwo; 
+  97   3            P2 = hexvalue[temp];
+  98   3            DELAY_ms(1);
+  99   3                     
+ 100   3            temp = num / 10;              // for getting tenth digit 
+ 101   3            P3 = SegThree;
+ 102   3            P2 = hexvalue[temp];
+ 103   3            DELAY_ms(1);
+ 104   3        
+ 105   3            temp = num % 10;              // 0'th digit
+ 106   3            P3 = SegFour;
+ 107   3            P2 = hexvalue[temp];
+ 108   3            DELAY_ms(1);                              
+ 109   3                  
+ 110   3          }
+ 111   2                
+ 112   2          rd_adc=1;                         //make RD = 1 for the next cycle
+ 113   2          
+ 114   2            
+ 115   2      
+C51 COMPILER V9.60.0.0   MAIN_C                                                            06/06/2021 13:14:55 PAGE 3   
+
+ 116   2      
+ 117   2      // buzzer     
+ 118   2          if(value>=set_value)
+ 119   2          {
+ 120   3            
+ 121   3            buzzer=1;         // value >= set_value then buzzer will on
+ 122   3              
+ 123   3          }
+ 124   2              
+ 125   2          else  
+ 126   2          {
+ 127   3                
+ 128   3            buzzer=0;     // value < setvalue then buzzer is off
+ 129   3              
+ 130   3          }     
+ 131   2          // buzzer end
+ 132   2          
+ 133   2          
+ 134   2          
+ 135   2          if(set==0)      
+ 136   2          {
+ 137   3                
+ 138   3            st=1;             // if set button pressed  then st = 1
+ 139   3              
+ 140   3          }     
+ 141   2              
+ 142   2              
+ 143   2          while(st!=0)        // while st is equal to 1     
+ 144   2          {
+ 145   3            
+ 146   3            if(inc==0)  
+ 147   3            {
+ 148   4                  
+ 149   4              cnt++;          // increament
+ 150   4                
+ 151   4            }
+ 152   3                
+ 153   3            else if(dec==0)   
+ 154   3            {
+ 155   4                  
+ 156   4              cnt--;        // decreament
+ 157   4                
+ 158   4            }
+ 159   3            
+ 160   3            else if(reset==0)   
+ 161   3            {
+ 162   4                
+ 163   4            set_value=35;     // set default value if reset button pressed  
+ 164   4            cnt=35; 
+ 165   4          
+ 166   4            }
+ 167   3                
+ 168   3                
+ 169   3            for (i = 0; i < 100; i++)      
+ 170   3            {
+ 171   4                      
+ 172   4              num = cnt;   
+ 173   4              temp = num / 1000;
+ 174   4              num = num % 1000;
+ 175   4              P3 = SegOne; 
+ 176   4              P2 = hexvalue[temp];               
+ 177   4              DELAY_ms(1);
+C51 COMPILER V9.60.0.0   MAIN_C                                                            06/06/2021 13:14:55 PAGE 4   
+
+ 178   4      
+ 179   4              temp = num / 100;
+ 180   4              num = num % 100;
+ 181   4              P3 = SegTwo; 
+ 182   4              P2 = hexvalue[temp];
+ 183   4              DELAY_ms(1);
+ 184   4      
+ 185   4              temp = num / 10;
+ 186   4              P3 = SegThree;
+ 187   4              P2 = hexvalue[temp];
+ 188   4              DELAY_ms(1);
+ 189   4      
+ 190   4              temp = num % 10;
+ 191   4              P3 = SegFour;
+ 192   4              P2 = hexvalue[temp];
+ 193   4              DELAY_ms(1);                              
+ 194   4                  
+ 195   4            }
+ 196   3                  
+ 197   3            if(set==0)    
+ 198   3            {
+ 199   4              
+ 200   4              set_value=cnt;  
+ 201   4              st=0;
+ 202   4                  
+ 203   4            }
+ 204   3              
+ 205   3          }
+ 206   2          
+ 207   2        }
+ 208   1      
+ 209   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    467    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      28
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
